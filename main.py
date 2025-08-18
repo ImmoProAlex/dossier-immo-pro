@@ -6,7 +6,9 @@ from dotenv import load_dotenv
 
 # Charger variables d'environnement
 load_dotenv()
-
+from fastapi import Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, Response
@@ -32,6 +34,15 @@ app = FastAPI(
     version="1.0.0",
     description="API d'évaluation de dossiers de prêt immobilier français"
 )
+# --- UI minimal: static & templates mounting ---
+try:
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+except Exception:
+    # Ignore si le dossier n’existe pas (ex: en dev)
+    pass
+
+templates = Jinja2Templates(directory="templates")
+# --- end UI minimal ---
 
 # Configuration Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "sk_test_default")
@@ -653,6 +664,12 @@ async def shutdown_event():
     """Arrêt"""
     logger.info("🛑 Arrêt Dossier Immo Pro API")
     scheduler.shutdown()
+# --- UI minimal: /app route ---
+@app.get("/app", response_class=HTMLResponse)
+def ui_app(request: Request):
+    """Interface minimale pour évaluer un dossier via /api/evaluate"""
+    return templates.TemplateResponse("index.html", {"request": request})
+# --- end UI minimal ---
 
 if __name__ == "__main__":
     import uvicorn
