@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dossier Immo Pro — Étape 1</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; padding: 24px; background:#0b1020; color:#e9ecf1; }
+      .container { max-width: 960px; margin: 0 auto; }
+      .card { background: #141a34; border: 1px solid #232b50; border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+      h1 { margin: 0 0 12px; font-size: 28px; }
+      h2 { margin-top: 24px; font-size: 18px; color:#b3c0ff; }
+      label { display:block; margin: 8px 0 4px; font-weight: 600; }
+      input, select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #2a3566; background:#0f1430; color:#e9ecf1; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .btn { margin-top: 14px; padding: 12px 16px; border-radius: 10px; border: 1px solid #2a3566; background:#1c2452; color:#e9ecf1; cursor:pointer; font-weight:700; }
+      .btn:hover { background: #222c63; }
+      .muted { color:#9aa7d9; font-size: 12px; }
+      .result { margin-top:16px; padding:12px; border-radius:10px; background:#0f1430; border:1px dashed #2a3566; white-space:pre-wrap }
+      a { color:#a9b9ff; text-decoration:none; }
+      a:hover { text-decoration:underline; }
+      .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+      .tag { font-size:12px; padding:4px 8px; border-radius:999px; background:#0f1430; border:1px solid #2a3566; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Étape 1 — Vérifiez si vous pouvez l’acheter</h1>
+        <span class="tag">Dossier Immo Pro</span>
+      </div>
+      <div class="card">
+        {% block content %}{% endblock %}
+      </div>
+      <p class="muted" style="margin-top:12px">Outil d’aide à la décision. Les banques restent souveraines. Taux: indicatifs. PDF accessible après paiement.</p>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
