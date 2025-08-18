@@ -81,20 +81,24 @@
         return;
         }
 
-      const lines = [
-        `Score: ${data.score}/100 (${data.rating || "—"})`,
-        data.monthly_payment !== undefined
-          ? `Mensualité (estimée): ${Math.round(data.monthly_payment * 100) / 100} €`
-          : "",
-        data.debt_ratio !== undefined
-          ? `Endettement: ${Math.round(data.debt_ratio * 100) / 100} %`
-          : "",
-        Array.isArray(data.recommendations) && data.recommendations.length
-          ? `Recommandations: ${data.recommendations.join(" | ")}`
-          : "",
-        data.application_id ? `Application ID: ${data.application_id}` : "",
-        data.application_id ? `PDF (si payé): /api/dossier/${data.application_id}/pdf` : ""
-      ].filter(Boolean);
+const lines = [
+  `Score: ${data.feasibility_score}/100 (${data.status || "—"})`,
+  data.monthly_payment !== undefined
+    ? `Mensualité (estimée): ${Math.round(data.monthly_payment * 100) / 100} €`
+    : "",
+  data.total_budget !== undefined
+    ? `Budget total (frais inclus estimés): ${Math.round(data.total_budget)} €`
+    : "",
+  data.current_interest_rate !== undefined
+    ? `Taux utilisé: ${(data.current_interest_rate * 100).toFixed(2)}%`
+    : "",
+  Array.isArray(data.recommendations) && data.recommendations.length
+    ? `Recommandations: ${data.recommendations.join(" | ")}`
+    : "",
+  data.application_id ? `Application ID: ${data.application_id}` : "",
+  data.application_id ? `PDF (si payé): /api/dossier/${data.application_id}/pdf` : ""
+].filter(Boolean);
+
 
       result.textContent = lines.join("\n");
       result.style.display = "block";
