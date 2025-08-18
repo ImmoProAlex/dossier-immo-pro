@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block content %}
+  <form id="calc-form">
+    <h2>Votre projet</h2>
+    <div class="row">
+      <div>
+        <label>Prix du bien (€)</label>
+        <input type="number" id="property_price" value="150000" min="50000" step="1000" />
+      </div>
+      <div>
+        <label>Apport (€)</label>
+        <input type="number" id="personal_contribution" value="20000" min="0" step="1000"/>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Durée (années)</label>
+        <select id="loan_duration">
+          <option value="15">15</option>
+          <option value="20" selected>20</option>
+          <option value="25">25</option>
+        </select>
+      </div>
+      <div>
+        <label>Type</label>
+        <select id="property_type">
+          <option value="ancien" selected>Ancien</option>
+          <option value="neuf">Neuf</option>
+        </select>
+      </div>
+    </div>
+
+    <h2>Revenus & situation</h2>
+    <div class="row">
+      <div>
+        <label>Emprunteur 1 — statut</label>
+        <select id="b1_status">
+          <option value="cdi">CDI</option>
+          <option value="cdd" selected>CDD</option>
+          <option value="independant">Indépendant</option>
+        </select>
+      </div>
+      <div>
+        <label>Emprunteur 1 — net mensuel (€)</label>
+        <input type="number" id="b1_income" value="3000" min="0" step="100"/>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Emprunteur 1 — ancienneté (années)</label>
+        <input type="number" id="b1_years" value="4" min="0" step="1"/>
+      </div>
+      <div>
+        <label>Emprunteur 1 — âge</label>
+        <input type="number" id="b1_age" value="30" min="18" step="1"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Co-emprunteur — statut</label>
+        <select id="b2_status">
+          <option value="aucun">Aucun</option>
+          <option value="cdi">CDI</option>
+          <option value="cdd" selected>CDD</option>
+          <option value="independant">Indépendant</option>
+        </select>
+      </div>
+      <div>
+        <label>Co-emprunteur — net mensuel (€)</label>
+        <input type="number" id="b2_income" value="5000" min="0" step="100"/>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label>Co-emprunteur — ancienneté (années)</label>
+        <input type="number" id="b2_years" value="1" min="0" step="1"/>
+      </div>
+      <div>
+        <label>Co-emprunteur — âge</label>
+        <input type="number" id="b2_age" value="28" min="18" step="1"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Enfants</label>
+        <input type="number" id="children" value="0" min="0" step="1"/>
+      </div>
+      <div>
+        <label>Crédits mensuels en cours (€)</label>
+        <input type="number" id="other_credits" value="0" min="0" step="50"/>
+      </div>
+    </div>
+
+    <button type="submit" class="btn">Calculer la faisabilité</button>
+    <button type="button" id="show-rates" class="btn">Voir les taux</button>
+  </form>
+
+  <div id="result" class="result" style="display:none"></div>
+  <div id="rates" class="result" style="display:none"></div>
+{% endblock %}
