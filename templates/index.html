@@ -569,7 +569,6 @@
             </div>
             <div class="rates-info" id="rates-info">
                 <div>Taux d'intérêt basés sur SeLoger</div>
-                <div id="rates-date">Chargement des taux...</div>
             </div>
         </div>
     </header>
@@ -888,4 +887,212 @@
             
             try {
                 const payload = createPayload();
+                const response = await fetch('/api/evaluate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(JSON.stringify(data));
+                }
+
+                currentApplicationId = data.application_id;
+                displayResults(data);
+                
+            } catch (error) {
+                alert('Erreur lors du calcul: ' + error.message);
+            } finally {
+                // Reset button
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        function createPayload() {
+            const v = (id) => document.getElementById(id).value;
+            const hasCo = document.getElementById('has-co-borrower').checked;
+
+            return {
+                project: {
+                    property_price: parseFloat(v("property_price")),
+                    property_type: v("property_type"),
+                    personal_contribution: parseFloat(v("personal_contribution")),
+                    loan_duration: parseInt(v("loan_duration"), 10)
+                },
+                household: {
+                    borrowers_count: hasCo ? 2 : 1,
+                    main_borrower: {
+                        employment: {
+                            status: v("b1_status"),
+                            net_monthly_income: parseFloat(v("b1_income")),
+                            years_experience: parseFloat(v("b1_years")),
+                            trial_period: false
+                        },
+                        age: parseInt(v("b1_age"), 10)
+                    },
+                    co_borrower: hasCo ? {
+                        employment: {
+                            status: v("b2_status"),
+                            net_monthly_income: parseFloat(v("b2_income")),
+                            years_experience: parseFloat(v("b2_years")),
+                            trial_period: false
+                        },
+                        age: parseInt(v("b2_age"), 10)
+                    } : null,
+                    children: parseInt(v("children"), 10)
+                },
+                housing: {
+                    current_status: "locataire",
+                    monthly_rent: 0,
+                    current_mortgage: 0,
+                    changing_main_residence: true
+                },
+                financial: {
+                    consumer_loans: [],
+                    rental_income: (parseFloat(v("b1_rental_income")) || 0) + (hasCo ? (parseFloat(v("b2_rental_income")) || 0) : 0),
+                    other_income: 0
+                }
+            };
+        }
+
+        function displayResults(data) {
+            // Update score circle
+            const scoreCircle = document.querySelector('.score-circle');
+            const scorePercentage = data.feasibility_score;
+            scoreCircle.style.background = `conic-gradient(#3b82f6 0deg ${scorePercentage * 3.6}deg, rgba(255,255,255,0.3) ${scorePercentage * 3.6}deg 360deg)`;
+            
+            // Update score values
+            document.getElementById('score-number').textContent = data.feasibility_score;
+            
+            // Update status
+            let statusText, statusColor;
+            if (data.status === 'favorable') {
+                statusText = '🟢 Dossier Favorable';
+                statusColor = '#10b981';
+            } else if (data.status === 'moyen') {
+                statusText = '🟡 Dossier Moyen';
+                statusColor = '#f59e0b';
+            } else {
+                statusText = '🔴 Dossier Difficile';
+                statusColor = '#ef4444';
+            }
+            
+            document.getElementById('score-status').textContent = statusText;
+            
+            // Update description
+            const descriptions = {
+                'favorable': 'Excellentes chances d\'obtenir votre prêt',
+                'moyen': 'Votre projet nécessite des ajustements',
+                'difficile': 'Plusieurs obstacles à surmonter'
+            };
+            document.getElementById('score-description').textContent = descriptions[data.status] || 'Analyse terminée';
+            
+            // Update result values
+            document.getElementById('monthly-payment').innerHTML = `${Math.round(data.monthly_payment)} <span class="result-unit">€/mois</span>`;
+            document.getElementById('total-budget').innerHTML = `${Math.round(data.total_budget).toLocaleString()} <span class="result-unit">€</span>`;
+            document.getElementById('interest-rate').innerHTML = `${(data.current_interest_rate * 100).toFixed(2)} <span class="result-unit">%</span>`;
+            
+            // Calculate eligible income for display
+            const totalIncome = calculateDisplayEligibleIncome();
+            document.getElementById('eligible-income').innerHTML = `${Math.round(totalIncome).toLocaleString()} <span class="result-unit">€/mois</span>`;
+            
+            // Update criteria
+            updateCriteriaDisplay(data.criteria_details);
+            
+            // Show results
+            document.getElementById('results-container').style.display = 'block';
+            document.getElementById('results-container').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateDisplayEligibleIncome() {
+            const v = (id) => document.getElementById(id).value;
+            const hasCo = document.getElementById('has-co-borrower').checked;
+            
+            // Main borrower income
+            let mainIncome = 0;
+            const mainStatus = v("b1_status");
+            const mainYears = parseFloat(v("b1_years"));
+            const mainSalary = parseFloat(v("b1_income"));
+            
+            if (mainStatus === "cdi") {
+                mainIncome = mainSalary;
+            } else if (mainStatus === "cdd" && mainYears >= 3) {
+                mainIncome = mainSalary * 0.7;
+            }
+            
+            // Co-borrower income
+            let coIncome = 0;
+            if (hasCo) {
+                const coStatus = v("b2_status");
+                const coYears = parseFloat(v("b2_years"));
+                const coSalary = parseFloat(v("b2_income"));
+                
+                if (coStatus === "cdi") {
+                    coIncome = coSalary;
+                } else if (coStatus === "cdd" && coYears >= 3) {
+                    coIncome = coSalary * 0.7;
+                }
+            }
+            
+            // Rental income (70%)
+            const rentalIncome = ((parseFloat(v("b1_rental_income")) || 0) + (hasCo ? (parseFloat(v("b2_rental_income")) || 0) : 0)) * 0.7;
+            
+            return mainIncome + coIncome + rentalIncome;
+        }
+
+        function updateCriteriaDisplay(criteriaDetails) {
+            const criteriaList = document.getElementById('criteria-list');
+            criteriaList.innerHTML = '';
+            
+            for (const [key, value] of Object.entries(criteriaDetails)) {
+                const item = document.createElement('div');
+                item.className = 'criteria-item';
+                
+                const isSuccess = value.includes('✅');
+                const isWarning = value.includes('⚠️');
+                const isError = value.includes('❌');
+                
+                let statusClass = 'error';
+                let statusIcon = '✗';
+                
+                if (isSuccess) {
+                    statusClass = 'success';
+                    statusIcon = '✓';
+                } else if (isWarning) {
+                    statusClass = 'warning';
+                    statusIcon = '!';
+                }
+                
+                item.innerHTML = `
+                    <div class="criteria-status ${statusClass}">${statusIcon}</div>
+                    <div class="criteria-content">
+                        <div class="criteria-name">${key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
+                        <div class="criteria-detail">${value.replace(/[✅❌⚠️]/g, '').trim()}</div>
+                    </div>
+                `;
+                
+                criteriaList.appendChild(item);
+            }
+        }
+
+        function proceedToPayment() {
+            if (!currentApplicationId) {
+                alert('Veuillez d\'abord effectuer une évaluation');
+                return;
+            }
+            
+            alert(`Redirection vers le paiement pour le dossier ${currentApplicationId}`);
+            // Ici: intégration Stripe réelle
+        }
+
+        // Charger les taux au démarrage
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentRates();
+        });
+    </script>
+</body>
+</html>
                 
